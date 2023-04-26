@@ -12,7 +12,7 @@
  ********************************************************************************/
 #ifndef __MAIN_H_
 #define __MAIN_H_
-
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <stdio.h>

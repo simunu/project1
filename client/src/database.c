@@ -32,9 +32,9 @@ sqlite3 *open_database(char *db_name)
 	zlog_info(zc,"database open  successfully");
 	
 	memset(sql,0,sizeof(sql));
-	sprintf(sql,"create table if not exists data(""time char(50),"
-			"temp char(50),"
-			"sn char(20));");
+	snprintf(sql,sizeof(sql),"create table if not exists data(""time char(50),"
+							"temp char(50),"
+							"sn char(20));");
 	ret = sqlite3_exec(db,sql,NULL,NULL,&error);
 	if(ret != SQLITE_OK)
 	{
@@ -59,7 +59,7 @@ int sql_insert(s_data *data)
 	}
 
 	memset(sql,0,sizeof(sql));
-	sprintf(sql,"insert into data values('time:%s\n','temp:%s\n','sn:%s');",data->time,data->s_temp,data->sn);
+	snprintf(sql,sizeof(sql),"insert into data values('time:%s\n','temp:%s\n','sn:%s');",data->time,data->s_temp,data->sn);
 	ret = sqlite3_exec(db,sql,NULL,NULL,&error);
 	if(ret != SQLITE_OK)
 	{
@@ -79,7 +79,7 @@ int sql_select(void)
 	char sql[maxn] = {0};
 
 	memset(sql,0,sizeof(sql));
-	sprintf(sql,"select * from data order by time desc limit 1;");
+	snprintf(sql,sizeof(sql),"select * from data order by time desc limit 1;");
 	ret = sqlite3_exec(db,sql,callback,NULL,&error);
 	if(ret != SQLITE_OK)
 	{
@@ -99,11 +99,11 @@ int sql_delect()
 	char sql[maxn] = {0};
 
 	memset(sql,0,sizeof(sql));
-	sprintf(sql,"delete from data order by time desc limit 1;");
+	snprintf(sql,sizeof(sql),"delete from data order by time desc limit 1;");
 	ret = sqlite3_exec(db,sql,NULL,NULL,&error);
 	if(ret != SQLITE_OK)
 	{
-		zlog_error(zc,"delete table error:%s",error);
+		zlog_error(zc,"delete data from table error:%s",error);
 		sqlite3_close(db);
 		sqlite3_free(error);
 		return -1;

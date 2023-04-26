@@ -1,0 +1,15 @@
+2023-04-25 19:42:50 [INFO  ]: (m_cli:main.c:94) socket connnect successfully
+2023-04-25 19:42:50 [INFO  ]: (m_cli:database.c:32) database open  successfully
+2023-04-25 19:42:50 [INFO  ]: (m_cli:database.c:46) create table successfully
+2023-04-25 19:42:51 [INFO  ]: (m_cli:main.c:115) pack data successfully
+2023-04-25 19:42:51 [INFO  ]: (m_cli:main.c:149) insert data to database successfully
+2023-04-25 19:42:51 [INFO  ]: (m_cli:socket.c:126) write to server successfully
+2023-04-25 19:42:51 [WARN  ]: (m_cli:main.c:156) send data to server failure
+2023-04-25 19:43:01 [INFO  ]: (m_cli:main.c:115) pack data successfully
+2023-04-25 19:43:01 [INFO  ]: (m_cli:main.c:149) insert data to database successfully
+2023-04-25 19:43:01 [INFO  ]: (m_cli:socket.c:126) write to server successfully
+2023-04-25 19:43:01 [WARN  ]: (m_cli:main.c:156) send data to server failure
+2023-04-25 19:47:46 [ERROR ]: (m_cli:main.c:156) send data to server failure
+2023-04-25 19:47:56 [ERROR ]: (m_cli:main.c:156) send data to server failure
+2023-04-25 19:48:57 [ERROR ]: (m_cli:main.c:156) send data to server failure
+2023-04-25 19:50:34 [ERROR ]: (m_cli:main.c:156) send data to server failure

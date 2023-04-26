@@ -10,14 +10,9 @@
  *      ChangeLog:  1, Release initial version on "04/18/23 10:04:50"
  *                 
  ********************************************************************************/
-#include <stdio.h>
 #include "main.h"
-#include "zlog.h"
-static int g_stop = 0;
-static sqlite3 *db;
 
-void printf_usage(char *program);
-void sig_handle(int signum);
+static int g_stop = 0;
 
 int main(int argc,char **argv)
 {
@@ -28,15 +23,15 @@ int main(int argc,char **argv)
 	int sample_flag = 0;
 	int diff_time = 0;
 	int tim_first = 0;
-	int tim_second = 0;
-	char *devsn = 0;
 	char buf[1024];
 	char str[1024];
 	char s_temp[50];
 	char end_time[40];
 	char *servip = 0;
+	char *devsn = "rpi1002";
 	char *hostname = "127.0.0.1";
 	char *db_name = "client1.db";
+	time_t tloc;
 
 	sock_t sock;
 	s_data data;
@@ -75,18 +70,35 @@ int main(int argc,char **argv)
 		}
 	}
 
-	get_zlog();
+	signal(SIGINT,sig_handle);
 
+	/* create zlog for client*/
+	if(!(get_zlog()))
+	{
+		printf("get zlog failure\n");
+	}
+	else
+	{
+		printf("get zlog successfully\n");
+	}
+
+	/* connect to socket for the first time */
 	if((socket_conn(&sock,hostname,port)) < 0)
 	{
 		zlog_error(zc,"socket connect failure");
 		socket_close(sock.conn_fd);
 	}
-
-	signal(SIGINT,sig_handle);
+	else
+	{
+		zlog_info(zc,"socket connnect successfully");
+	}
 
 	db = open_database(db_name);
-
+	if(!db)
+	{
+		db = open_database(db_name);
+	}
+	
 	while(!g_stop)
 	{
 		sample_flag = 0;
@@ -107,7 +119,6 @@ int main(int argc,char **argv)
 		rv = tcp_state(&sock);
 		if(rv < 0)
 		{
-			socket_close(sock.conn_fd);
 			zlog_info(zc,"clinet wait for connecting.......");
 			while(1)
 			{
@@ -118,13 +129,14 @@ int main(int argc,char **argv)
 				}
 				else
 				{
+					zlog_info(zc,"connnect to server successfully again");
 					break;
 				}
 			}
-			zlog_info(zc,"connect to server successfully again");
 		}
 
-		if(sample_flag = 1)
+		/* pack data and connect server successfully,begin to send data */
+		if(sample_flag == 1)
 		{
 			rv = sql_insert(&data);
 			if(rv < 0)
@@ -138,7 +150,7 @@ int main(int argc,char **argv)
 
 			/* while connect to server successfully,send data to server */
 			rv = socket_write(&sock,&data);
-			if(rv <= 0)
+			if(rv < 0)
 			{
 				zlog_error(zc,"send data to server failure");
 			}
@@ -148,13 +160,18 @@ int main(int argc,char **argv)
 			}
 		}
 
-		sql_select();
+		rv = sql_select();
+		if(rv < 0)
+		{
+			zlog_error(zc,"select data from database failure");
+		}
 		sql_delect();
+		
 		/* wait for time become the input time interval*/
 		while(1)
 		{
-			tim_second = get_time(end_time,sizeof(end_time));
-			diff_time = tim_second - tim_first;
+			time(&tloc);
+			diff_time = tloc - tim_first;
 			if(diff_time >= tim)
 			{
 				break;
@@ -164,7 +181,6 @@ int main(int argc,char **argv)
 				continue;
 			}
 		}
-
 	}
 	close(sock.conn_fd);
 	zlog_fini();

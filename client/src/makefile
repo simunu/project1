@@ -23,7 +23,7 @@ data_pack.o:data_pack.c data_pack.h
 	${CC} -c data_pack.c -o data_pack.o
 
 run:
-	export LD_LIBRARY_PATH=$${LD_LIBRARY_PATH}:/home/iot23/xiongliling/zlog/build_linux/lib&&./${APPNAME}  -h 127.0.0.1 -p 8808 -s rpi1001 -t 10 
+	export LD_LIBRARY_PATH=$${LD_LIBRARY_PATH}:/home/iot23/xiongliling/zlog/build_linux/lib&&./${APPNAME}  -h 127.0.0.1 -p 8808 -t 10 
 
 clean:
 	rm -rf *.o main

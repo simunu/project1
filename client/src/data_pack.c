@@ -16,27 +16,19 @@
 
 int get_time(char *buff,int len)
 {
-	struct timeval tv;
-	struct tm* ptm;
-	char time_string[50];
+	time_t timep;
+	struct tm *ptm;
 	int tim = 0;
-	int rv = 0;
 
-	gettimeofday(&tv, NULL);
-	ptm = localtime (&(tv.tv_sec));
+	time(&timep);
+	ptm = localtime(&timep);
 	if(ptm != NULL)
 	{
-		tim = tv.tv_sec;
-		strftime(time_string,sizeof(time_string),"%Y-%m-%d %H:%M:%S",ptm);
-		snprintf(buff,len,"%s",time_string);
-		rv = tim;
+		snprintf(buff,len,"%04d-%02d-%2d %02d:%02d:%02d",ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+		tim = timep;
+		return tim;
 	}
-	else
-	{
-		zlog_error(zc,"error: invalid time pointer");
-		rv = -1;
-	}
-	return rv;
+	
 }
 
 int data_pack(s_data *data,char *devsn,int *tim_first)
@@ -50,21 +42,20 @@ int data_pack(s_data *data,char *devsn,int *tim_first)
 		zlog_error(zc,"invalid input arguments");
 		return -1;
 	}
-
-	sprintf(data->sn,"%s",devsn);
+	snprintf(data->sn,sizeof(data->sn),"%s",devsn);
 
 	rv = get_temp(&temp);
 	if(rv < 0)
 	{
 		return rv;
 	}
-	sprintf(data->s_temp,"%f",temp);
+	snprintf(data->s_temp,sizeof(data->s_temp),"%f",temp);
 
 	*tim_first = get_time(time,sizeof(time));
 	if(*tim_first < 0)
 	{
 		return -1;
 	}
-	sprintf(data->time,"%s",time);
+	snprintf(data->time,sizeof(data->time),"%s",time);
 	return 0;
 }

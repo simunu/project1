@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include "zlog.h"
 
-//zlog_category_t *zc;
 zlog_category_t *get_zlog(void)
 {
 	if((zlog_init("cli_zlog.ini")))
@@ -26,11 +25,11 @@ zlog_category_t *get_zlog(void)
 	zc = zlog_get_category("m_cli");
 	if(!zc)
 	{
-		printf("zlog get category failure\n");
+	//	printf("zlog get category failure\n");
 		zlog_fini();
 		exit(1);
 	}
-	zlog_info(zc,"zlog get category successfully");
+//	zlog_info(zc,"zlog get category successfully");
 	return zc;
 }
 

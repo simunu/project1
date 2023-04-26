@@ -44,7 +44,7 @@ int socket_conn(sock_t *sock,char *hostname,int port)
 				hostip = servhost->h_addr_list;
 				for (; *hostip != NULL; hostip++)
 					printf("IP: %s\n",inet_ntop(servhost->h_addrtype,servhost->h_addr,ipstr,sizeof(ipstr)));
-				sprintf(sock->servip,"%s",ipstr);
+				snprintf(sock->servip,sizeof(sock->servip),"%s",ipstr);
 				break;
 			default:
 				printf("error address\n");
@@ -53,13 +53,13 @@ int socket_conn(sock_t *sock,char *hostname,int port)
 	} 
 	else
 	{
-		sprintf(sock->servip,"%s",hostname);
+		snprintf(sock->servip,sizeof(sock->servip),"%s",hostname);
 	}
 
 	sock->conn_fd = socket(AF_INET,SOCK_STREAM,0);
 	if(sock->conn_fd < 0)
 	{
-		zlog_error(zc,"connect to server failure:%s",strerror(errno));
+		zlog_warn(zc,"connect to server failure:%s",strerror(errno));
 		socket_close(sock->conn_fd);
 		return -2;
 	}
@@ -128,19 +128,18 @@ int socket_write(sock_t *sock,s_data *data)
 	rv = read(sock->conn_fd,buf,strlen(buf));
 	if(rv < 0)
 	{
-		//	zlog_error(zc,"read data from server failure:%s",strerror(errno));
+			zlog_warn(zc,"read data from server failure:%s",strerror(errno));
 		socket_close(sock->conn_fd);
 		return -3;
 	}
 	else if(rv == 0)
 	{
-		//	zlog_error(zc,"socket[%d] get disconnected",sock->conn_fd);
+			zlog_warn(zc,"socket[%d] get disconnected",sock->conn_fd);
 		socket_close(sock->conn_fd);
 		return -4;
 	}
 	else
 	{
-		//	zlog_info(zc,"read %d bytes data from server",rv);
 		return 0;
 	}
 }
