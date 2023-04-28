@@ -30,7 +30,7 @@ int get_temp(float *temp)
 	if((dirp = opendir(w1_path)) == NULL )
 	{   
 		rv = -1;
-	//	zlog_error(zc,"opendir error: %s",strerror(errno));
+		zlog_warn(zc,"opendir error: %s",strerror(errno));
 		goto cleanup; 
 	}   
 
@@ -48,7 +48,7 @@ int get_temp(float *temp)
 	if(!found)
 	{
 		rv = -2;
-	//	zlog_error(zc,"can not find ds18b20 in %s",w1_path);
+		zlog_warn(zc,"can not find ds18b20 in %s",w1_path);
 		goto cleanup;
 	}
 	closedir(dirp);
@@ -57,7 +57,7 @@ int get_temp(float *temp)
 	if((fd = open(ds_path,O_RDONLY)) < 0 )
 	{
 		rv = -3;
-	//	zlog_error(zc,"open %s error : %s",ds_path,strerror(errno));
+		zlog_warn(zc,"open %s error : %s",ds_path,strerror(errno));
 		goto cleanup;
 	}
 
@@ -65,7 +65,7 @@ int get_temp(float *temp)
 	if(read(fd,buf,sizeof(buf)) < 0)
 	{
 		rv = -4;
-	//	zlog_error(zc,"read %s error:%s",w1_path,strerror(errno));
+		zlog_warn(zc,"read %s error:%s",w1_path,strerror(errno));
 		goto cleanup;
 	}
 
@@ -73,7 +73,7 @@ int get_temp(float *temp)
 	if(!ptr)
 	{
 		rv = -5;
-	//	zlog_error(zc,"get temperature failure");
+		zlog_warn(zc,"get temperature failure");
 		goto cleanup;
 	}
 

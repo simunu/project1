@@ -12,7 +12,7 @@
  ********************************************************************************/
 #ifndef __MAIN_H_
 #define __MAIN_H_
-
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
@@ -21,7 +21,6 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <signal.h>
-#include "get_time.h"
 #include <sqlite3.h>
 #include "get_temp.h"
 #include "zlog.h"

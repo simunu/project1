@@ -20,13 +20,14 @@ int main(int argc,char **argv)
 	int tim = 0;
 	int rv = 0;
 	int port = 8808;
-	int sample_flag = 0;
 	int diff_time = 0;
 	int tim_first = 0;
+	int con_flag = 1;
+	int sample_flag = 0;
 	char buf[1024];
 	char str[1024];
-	char s_temp[50];
-	char end_time[40];
+	char s_temp[64];
+	char buf_send[1024];
 	char *servip = 0;
 	char *devsn = "rpi1002";
 	char *hostname = "127.0.0.1";
@@ -85,23 +86,25 @@ int main(int argc,char **argv)
 	/* connect to socket for the first time */
 	if((socket_conn(&sock,hostname,port)) < 0)
 	{
+		con_flag = 0;
 		zlog_error(zc,"socket connect failure");
-		socket_close(sock.conn_fd);
+		socket_close(&sock);
+		return -1;
 	}
 	else
 	{
+		con_flag = 1;
 		zlog_info(zc,"socket connnect successfully");
 	}
 
-	db = open_database(db_name);
-	if(!db)
-	{
-		db = open_database(db_name);
-	}
-	
 	while(!g_stop)
 	{
-		sample_flag = 0;
+		/* open database and create table */
+		db = open_database(db_name);
+		if(!db)
+		{   
+			db = open_database(db_name);
+		}   
 
 		/* get data and pack them */
 		rv = data_pack(&data,devsn,&tim_first);
@@ -115,58 +118,86 @@ int main(int argc,char **argv)
 			sample_flag = 1;
 		}
 
-		/* judge socket state,if disconnect connect again */
-		rv = tcp_state(&sock);
-		if(rv < 0)
+		/* judge socket state */
+		if((tcp_state(&sock)) < 0)
 		{
-			zlog_info(zc,"clinet wait for connecting.......");
-			while(1)
+			con_flag = 0;
+			socket_close(&sock);
+			if((socket_conn(&sock,hostname,port)) < 0)
 			{
-				rv = socket_conn(&sock,hostname,port);
+				zlog_warn(zc,"socket reconnect failure");
+			}
+			else
+			{
+				con_flag = 1;
+				zlog_info(zc,"socket reconnect successfully");
+			}
+		}
+		else
+		{
+			con_flag = 1;
+		}
+
+		/* when socket connect,send pack data */
+		if(con_flag)
+		{
+			if(sample_flag)
+			{
+				memset(buf,0,sizeof(buf));
+				snprintf(buf,sizeof(buf),"time: %s|temp: %s|sn: %s",data.time,data.s_temp,data.sn);
+				printf("send data-- %s\n",buf);
+				rv = socket_send(&sock,buf,sizeof(buf));
 				if(rv < 0)
 				{
-					continue;
+					sql_insert(&data);
+					zlog_error(zc,"send data to server failure");
+					socket_close(&sock);
 				}
 				else
 				{
-					zlog_info(zc,"connnect to server successfully again");
-					break;
+					zlog_info(zc,"send data to server successfully");
 				}
+				
+				/* send  data about disconnect insert into database  */
+				rv = sql_data_count();
+				if( rv > 0 )
+				{
+					sql_get_data(buf_send,sizeof(buf_send),sql_data_count());
+					printf("database data-- %s\n",buf_send);
+					rv = write(sock.conn_fd,buf_send,sizeof(buf_send));
+					if(rv < 0 )
+					{
+						zlog_error(zc,"send data to server from database failure");
+						socket_close(&sock);
+					}
+					else
+					{
+						sql_delete();
+						zlog_info(zc,"send data to server from database successfully and delete them");
+					}
+
+				}
+				else
+				{
+					zlog_info(zc,"database not have data");
+				}		
 			}
 		}
 
-		/* pack data and connect server successfully,begin to send data */
-		if(sample_flag == 1)
+		if(!con_flag)
 		{
-			rv = sql_insert(&data);
-			if(rv < 0)
+			if(sample_flag)
 			{
-				zlog_error(zc,"insert data to database failure");
+				zlog_info(zc,"%s %s %s\n",data.time,data.s_temp,data.sn);
+				sql_insert(&data);
 			}
 			else
 			{
-				zlog_info(zc,"insert data to database successfully");
-			}
-
-			/* while connect to server successfully,send data to server */
-			rv = socket_write(&sock,&data);
-			if(rv < 0)
-			{
-				zlog_error(zc,"send data to server failure");
-			}
-			else
-			{
-				zlog_info(zc,"send data to server successfully");
+				zlog_info(zc,"no data to do");
 			}
 		}
+		printf("--------------------\n");
 
-		rv = sql_select();
-		if(rv < 0)
-		{
-			zlog_error(zc,"select data from database failure");
-		}
-		sql_delect();
-		
 		/* wait for time become the input time interval*/
 		while(1)
 		{
@@ -182,6 +213,7 @@ int main(int argc,char **argv)
 			}
 		}
 	}
+	sql_close();
 	close(sock.conn_fd);
 	zlog_fini();
 	return 0;

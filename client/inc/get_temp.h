@@ -22,6 +22,5 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-/* get the temperature */
 extern int get_temp(float *temp);
 #endif	/* ----- #ifndef _GETEMP_H_ ----- */

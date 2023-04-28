@@ -29,7 +29,6 @@ zlog_category_t *get_zlog(void)
 		zlog_fini();
 		exit(1);
 	}
-//	zlog_info(zc,"zlog get category successfully");
 	return zc;
 }
 

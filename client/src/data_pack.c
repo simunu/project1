@@ -16,9 +16,9 @@
 
 int get_time(char *buff,int len)
 {
+	int tim = 0;
 	time_t timep;
 	struct tm *ptm;
-	int tim = 0;
 
 	time(&timep);
 	ptm = localtime(&timep);
@@ -28,7 +28,6 @@ int get_time(char *buff,int len)
 		tim = timep;
 		return tim;
 	}
-	
 }
 
 int data_pack(s_data *data,char *devsn,int *tim_first)
@@ -47,14 +46,14 @@ int data_pack(s_data *data,char *devsn,int *tim_first)
 	rv = get_temp(&temp);
 	if(rv < 0)
 	{
-		return rv;
+		return -2;
 	}
 	snprintf(data->s_temp,sizeof(data->s_temp),"%f",temp);
 
 	*tim_first = get_time(time,sizeof(time));
 	if(*tim_first < 0)
 	{
-		return -1;
+		return -3;
 	}
 	snprintf(data->time,sizeof(data->time),"%s",time);
 	return 0;

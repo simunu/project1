@@ -28,16 +28,17 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <signal.h>
+#include "data_pack.h"
 
-struct socket_data
+typedef struct socket_data
 {
 	int conn_fd;
 	int port;
 	char servip[40];
-};
-void printf_usage(char *progname);
-int socket_init(struct socket_data* sock,char *hostname,int port);
-int socket_conn(struct socket_data* sock);
-int tcp_state(struct socket_data* sock);
-int socket_w_r(struct socket_data* sock,char *buf);
+}sock_t;
+
+int socket_conn(sock_t *sock,char *hostname,int port);
+int tcp_state(sock_t *sock);
+int socket_send(sock_t *sock,char *buf,int len);
+int socket_close(sock_t *sock);
 #endif /* ----- #ifdef __SOCKET_H_ ----- */

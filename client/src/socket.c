@@ -60,7 +60,7 @@ int socket_conn(sock_t *sock,char *hostname,int port)
 	if(sock->conn_fd < 0)
 	{
 		zlog_warn(zc,"connect to server failure:%s",strerror(errno));
-		socket_close(sock->conn_fd);
+		socket_close(sock);
 		return -2;
 	}
 
@@ -71,7 +71,7 @@ int socket_conn(sock_t *sock,char *hostname,int port)
 
 	if((connect(sock->conn_fd,(struct sockaddr *)&servaddr,sizeof(servaddr))) < 0)
 	{
-		socket_close(sock->conn_fd);
+		socket_close(sock);
 		return -3;
 	}
 	
@@ -86,14 +86,14 @@ int tcp_state(sock_t *sock)
 
 	if(sock->conn_fd < 0)
 	{
-		socket_close(sock->conn_fd);
+		socket_close(sock);
 		return -1;
 	}
 
 	getsockopt(sock->conn_fd,IPPROTO_TCP,TCP_INFO,&info,(socklen_t *)&len);
 	if((info.tcpi_state != TCP_ESTABLISHED))
 	{
-		socket_close(sock->conn_fd);
+		socket_close(sock);
 		return -1;
 	}
 	else
@@ -102,40 +102,35 @@ int tcp_state(sock_t *sock)
 	}
 }
 
-int socket_write(sock_t *sock,s_data *data)
+int socket_send(sock_t *sock,char *buf,int len)
 {
 	int rv = 0;
-	char buf[1024];
 	
 	if(sock->conn_fd < 0)
 	{
-		socket_close(sock->conn_fd);
+		socket_close(sock);
 		return -1;
 	}
-
-	memset(buf,0,sizeof(buf));
-	snprintf(buf,sizeof(buf),"time: %s\ntemp: %s\nsn: %s\n",data->time,data->s_temp,data->sn);
 
 	rv = write(sock->conn_fd,buf,strlen(buf));
 	if(rv < 0)
 	{
 		zlog_error(zc,"write to server failure:%s",strerror(errno));
-		socket_close(sock->conn_fd);
+		socket_close(sock);
 		return -2;
 	}
-	zlog_info(zc,"write to server successfully");
 
 	rv = read(sock->conn_fd,buf,strlen(buf));
 	if(rv < 0)
 	{
 			zlog_warn(zc,"read data from server failure:%s",strerror(errno));
-		socket_close(sock->conn_fd);
+		socket_close(sock);
 		return -3;
 	}
 	else if(rv == 0)
 	{
 			zlog_warn(zc,"socket[%d] get disconnected",sock->conn_fd);
-		socket_close(sock->conn_fd);
+		socket_close(sock);
 		return -4;
 	}
 	else
@@ -144,8 +139,8 @@ int socket_write(sock_t *sock,s_data *data)
 	}
 }
 
-int socket_close(int conn_fd)
+int socket_close(sock_t *sock)
 {
-	close(conn_fd);
-	conn_fd = -1;
+	close(sock->conn_fd);
+	sock->conn_fd = -1;
 }
